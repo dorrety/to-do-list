@@ -10,15 +10,19 @@ export default function TodoList() {
     const addTodo = (event) => {
         event.preventDefault();
         if (inputValue.trim() === '') return;
-        setTodo([...todos, inputValue])
+        const newTodo = {
+            id: Symbol(inputValue),
+            text: inputValue
+        }
+        setTodo([...todos, newTodo])
         setInputValue('')
     }
 
-    const deleteTodo = (index) => {
-        setTodo(todos.filter((_, todoIndex) => todoIndex !== index))
+    const deleteTodo = (id) => {
+        setTodo(todos.filter((todo) => todo.id !== id))
     }
 
-    const filteredTodos = todos.filter((todo) => todo.toLowerCase().includes(searchItem.toLowerCase()));
+    const filteredTodos = todos.filter((todo) => todo.text.toLowerCase().includes(searchItem.toLowerCase()));
 
     return (
         <div>
@@ -29,8 +33,8 @@ export default function TodoList() {
             </form>
             <Search searchItem={searchItem} setSearchItem={setSearchItem} />
             <ul>
-                {filteredTodos.map((todo, index) => (
-                    <Todo key={index} todo={todo} deleteTodo={() => deleteTodo(index)} />
+                {filteredTodos.map((todo) => (
+                    <Todo key={todo.id.toString()} todo={todo} deleteTodo={() => deleteTodo(todo.id)} />
                 ))}
             </ul>
         </div>

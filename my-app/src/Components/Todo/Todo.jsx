@@ -3,8 +3,8 @@ export default function Todo({todo, deleteTodo}) {
     return (
         <>
             <li>
-                {todo}
-                <button onClick={() => deleteTodo(todo)}>-</button>
+                {todo.text}
+                <button onClick={() => deleteTodo(todo.id)}>-</button>
             </li>
         </>
     )
