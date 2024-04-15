@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Todo from "../../Components/Todo/Todo";
 import Search from "../../Components/Search/Search";
+import Timer from "../../Components/Timer/Timer"
+import { deleteTodo } from "../../Components/Todo/handlers/handlers";
 
 export default function TodoList() {
     const [todos, setTodo] = useState([]);
@@ -14,13 +16,13 @@ export default function TodoList() {
             id: Symbol(inputValue),
             text: inputValue
         }
-        setTodo([...todos, newTodo])
+        setTodo((state) => [...state, newTodo])
         setInputValue('')
     }
 
-    const deleteTodo = (id) => {
-        setTodo(todos.filter((todo) => todo.id !== id))
-    }
+    const handleDeleteTodo = (id) => {
+        deleteTodo(setTodo, todos, id);
+    };
 
     const filteredTodos = todos.filter((todo) => todo.text.toLowerCase().includes(searchItem.toLowerCase()));
 
@@ -34,9 +36,10 @@ export default function TodoList() {
             <Search searchItem={searchItem} setSearchItem={setSearchItem} />
             <ul>
                 {filteredTodos.map((todo) => (
-                    <Todo key={todo.id.toString()} todo={todo} deleteTodo={() => deleteTodo(todo.id)} />
+                    <Todo key={todo.id.toString()} todo={todo} deleteTodo={handleDeleteTodo} />
                 ))}
             </ul>
+            <Timer />
         </div>
     )
 }
