@@ -1,5 +1,5 @@
-export const deleteTodo = (setTodo, todos, id) => {
+export const deleteTodo = (setTodos, todos, id) => {
     if(todos) {
-        setTodo(todos.filter((todo) => todo.id !== id))
+        setTodos(todos.filter((todo) => todo.id !== id))
     }
 }

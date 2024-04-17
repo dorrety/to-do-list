@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TodoItem checked text todo 1`] = `
+<span
+  class="todo-text "
+>
+  Test todo
+</span>
+`;
