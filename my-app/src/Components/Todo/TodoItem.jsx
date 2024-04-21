@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Context } from "../../context";
 
-export default function TodoItem({ text, id, completed }) {
+export default function TodoItem({ id, title, completed }) {
     const { toggleTodo, deleteTodo } = useContext(Context)
 
     return (
@@ -13,7 +13,7 @@ export default function TodoItem({ text, id, completed }) {
                     checked={completed}
                     onChange={() => toggleTodo(id)}
                     />
-                <span className={`todo-text ${completed ? 'checked' : ''}`}>{text}</span>
+                <span className={`todo-text ${completed ? 'checked' : ''}`}>{title}</span>
                 <button className="delete-button" onClick={() => deleteTodo(id)}>-</button>
             </li>
         </label>
