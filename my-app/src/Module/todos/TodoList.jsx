@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import TodoItem from "../../Components/Todo/TodoItem";
 import Search from "../../Components/Search/Search";
-import { Context } from '../../context';
-import { getTodos } from "../../service/getTodos";
+import { getTodos } from "../../service/todo.sevice";
 import { Pagination } from "antd";
+import { useSelector, useDispatch } from "react-redux";
+import { addTodoAction, removeTodoAction, removeAllTodoAction, toggleTodoAction } from "../../store/todoReducer";
 
 export default function TodoList() {
-    const [todos, setTodos] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [searchItem, setSearchItem] = useState('');
 
@@ -14,56 +14,46 @@ export default function TodoList() {
     const [currentPage, setCurrentPage] = useState(1);
     const [todosPerPage, setTodosPerPage] = useState(10)
 
+    const dispatch = useDispatch()
+    const todos = useSelector(state => state.todoReducer.todos)
+    
+    const addedTodo = (title) => {
+        if (!title.length) return;
+        const todo = {
+            id: Date.now(),
+            title,
+            completed: false,
+        }
+        dispatch(addTodoAction(todo))
+    }
+
+    const removeTodo = (id) => {
+        dispatch(removeTodoAction(id))
+    }
+
+    const deleteAll = (todo) => {
+        dispatch(removeAllTodoAction(todo))
+    }
+
+    const toggleTodo = (id, completed) => {
+        dispatch(toggleTodoAction({id, completed: !completed}))
+    }
+
     useEffect(() => {
         getTodos().then(data => {
             setAxiosTodos([...data]);
         })
     }, [])
 
-    useEffect(() => {
-        const raw = localStorage.getItem('todos') || [];
-        setTodos(JSON.parse(raw));
-    }, []);
+    // useEffect(() => {
+    //     const raw = localStorage.getItem('todos') || [];
+    //     setTodos(JSON.parse(raw));
+    // }, []);
 
-    useEffect(() => {
-        localStorage.setItem('todos', JSON.stringify(todos));
-    }, [todos]);
+    // useEffect(() => {
+    //     localStorage.setItem('todos', JSON.stringify(todos));
+    // }, [todos]);
 
-    const addTodo = (event) => {
-        event.preventDefault();
-        if (inputValue.trim() === '') return;
-        const newTodo = {
-            id: Date.now(),
-            title: inputValue,
-            completed: false
-        }
-        setTodos((state) => [...state, newTodo])
-        setInputValue('')
-    }
-
-    const deleteTodo = (id) => {
-        setTodos(todos.filter((todo) => todo.id !== id));
-        setAxiosTodos(axiosTodos.filter((todo) => todo.id !== id))
-    };
-
-    const toggleTodo = (id) => {
-        setTodos(todos.map((todo) => {
-            if (todo.id === id) {
-                todo.completed = !todo.completed
-            }
-            return todo;
-        }))
-        setAxiosTodos(axiosTodos.map((todo) => {
-            if (todo.id === id) {
-                todo.completed = !todo.completed
-            }
-            return todo;
-        }))
-    }
-
-    const deleteAll = () => {
-        setTodos([])
-    }
 
     const filteredTodos = todos.filter((todo) => todo.title.toLowerCase().includes(searchItem.toLowerCase()));
 
@@ -74,12 +64,13 @@ export default function TodoList() {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
-        <Context.Provider value={{
-            toggleTodo, deleteTodo
-        }}>
             <div className="container">
                 <h1>To-do-list</h1>
-                <form onSubmit={addTodo}>
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    addedTodo(inputValue)
+                    setInputValue('')
+                }}>
                     <input 
                         type='text'
                         onChange={(e) => setInputValue(e.target.value)}
@@ -92,11 +83,17 @@ export default function TodoList() {
                 <Search searchItem={searchItem} setSearchItem={setSearchItem} />
                 <div>
                     <button onClick={deleteAll}>Delete all</button>
+                    { todos.length > 0 ?
                     <ul>
                         {filteredTodos.map((todo) => (
-                            <TodoItem key={todo.id} {...todo} />
+                            <TodoItem key={todo.id} {...todo} removeTodo={removeTodo} toggleTodo={toggleTodo}/>
                         ))}
                     </ul>
+                    :
+                    <div style={{marginTop:20}}>
+                        Задач нет!
+                    </div>
+                    }
                 </div>
                 <h2>AXIOS LIST</h2>
                 <div>
@@ -121,6 +118,5 @@ export default function TodoList() {
                     onShowSizeChange={(_current, size) => setTodosPerPage(size)}/>
                 </div>
             </div>
-        </Context.Provider>
     )
 }
