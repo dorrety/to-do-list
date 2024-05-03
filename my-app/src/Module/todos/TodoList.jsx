@@ -1,23 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import TodoItem from "../../Components/Todo/TodoItem";
 import Search from "../../Components/Search/Search";
-import { getTodos } from "../../service/todo.sevice";
 import { Pagination } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { addTodoAction, removeTodoAction, removeAllTodoAction, toggleTodoAction } from "../../store/todoReducer";
+import { removeAxiosTodoAction, toggleAxiosTodoAction } from "../../store/axiosReducer"
+
+import { axiTodos } from "../../asyncActions/axiosTodos";
 
 export default function TodoList() {
     const [inputValue, setInputValue] = useState('');
     const [searchItem, setSearchItem] = useState('');
 
-    const [axiosTodos, setAxiosTodos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [todosPerPage, setTodosPerPage] = useState(10)
 
     const dispatch = useDispatch()
     const todos = useSelector(state => state.todoReducer.todos)
+    const axiosTodos = useSelector(state => state.axiosReducer.axiosTodos)
+    const [isButtonClicked, setIsButtonClicked] = useState(false);
     
-    const addedTodo = (title) => {
+    const addTodo = (title) => {
         if (!title.length) return;
         const todo = {
             id: Date.now(),
@@ -39,21 +42,20 @@ export default function TodoList() {
         dispatch(toggleTodoAction({id, completed: !completed}))
     }
 
-    useEffect(() => {
-        getTodos().then(data => {
-            setAxiosTodos([...data]);
-        })
-    }, [])
+    const handleButtonClick = () => {
+        if (!isButtonClicked) {
+            dispatch(axiTodos());
+            setIsButtonClicked(true)
+        }
+    }
 
-    // useEffect(() => {
-    //     const raw = localStorage.getItem('todos') || [];
-    //     setTodos(JSON.parse(raw));
-    // }, []);
+    const removeAxiosTodo = (id) => {
+        dispatch(removeAxiosTodoAction(id))
+    }
 
-    // useEffect(() => {
-    //     localStorage.setItem('todos', JSON.stringify(todos));
-    // }, [todos]);
-
+    const toggleAxiosTodo = (id, completed) => {
+        dispatch(toggleAxiosTodoAction({id, completed: !completed}))
+    }
 
     const filteredTodos = todos.filter((todo) => todo.title.toLowerCase().includes(searchItem.toLowerCase()));
 
@@ -68,7 +70,7 @@ export default function TodoList() {
                 <h1>To-do-list</h1>
                 <form onSubmit={(e) => {
                     e.preventDefault();
-                    addedTodo(inputValue)
+                    addTodo(inputValue)
                     setInputValue('')
                 }}>
                     <input 
@@ -96,18 +98,21 @@ export default function TodoList() {
                     }
                 </div>
                 <h2>AXIOS LIST</h2>
+                { axiosTodos.length < 1 ? 
+                <button onClick={handleButtonClick}>Получить все задачи</button>
+                :
                 <div>
                     <Pagination
                     total={axiosTodos.length}
                     current={currentPage}
                     pageSize={todosPerPage}
                     onChange={paginate}
-                    onShowSizeChange={(current, size) => setTodosPerPage(size)}
+                    onShowSizeChange={(_current, size) => setTodosPerPage(size)}
                     />
                     <ul>
                         {currentTodos
                         .map((todo) => (
-                           <TodoItem key={Symbol(todo.id).toString()} {...todo} />
+                           <TodoItem key={Symbol(todo.id).toString()} {...todo} removeTodo={removeAxiosTodo} toggleTodo={toggleAxiosTodo}/>
                         ))}
                     </ul>
                     <Pagination
@@ -117,6 +122,7 @@ export default function TodoList() {
                     onChange={paginate}
                     onShowSizeChange={(_current, size) => setTodosPerPage(size)}/>
                 </div>
+                }
             </div>
     )
 }
